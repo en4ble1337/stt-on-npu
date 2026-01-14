@@ -1,6 +1,6 @@
 # NPU Speech-to-Text with Wav2Vec2
 
-![NPU Testing](assets/logo.png)
+![NPU Testing](assets/NPU-testing.png)
 
 Real-time speech recognition accelerated by Intel NPU using Wav2Vec2 CTC models.
 
@@ -8,14 +8,27 @@ Real-time speech recognition accelerated by Intel NPU using Wav2Vec2 CTC models.
 [![OpenVINO](https://img.shields.io/badge/OpenVINO-2025.4-green.svg)](https://docs.openvino.ai/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎯 Features
+## Features
 
 - **NPU-Accelerated Inference** - Up to 7x faster than CPU
 - **Real-time Transcription** - 24.8x faster than real-time on 30s audio
 - **Voice Activity Detection** - Silero VAD for speech segmentation
 - **Simple CLI** - Easy-to-use command line interface
 
-## 📊 Benchmark Results
+## NPU Capability Map
+
+We extensively tested various model sizes on the Intel Core Ultra NPU. Here are the limits:
+
+| Model Size | Parameters | Status | Performance |
+| :--- | :--- | :--- | :--- |
+| **Small** | 95M | Verified | **44x Speedup** (0.68s / 30s audio) |
+| **Medium/Large** | 315M | Verified | **23x Speedup** (1.27s / 30s audio) |
+| **Extra Large** | 600M | Failed | Crashes NPU (Exceeds Memory/Timeout) |
+| **Giant** | 1B | Failed | Crashes NPU (Exceeds Memory/Timeout) |
+
+**Recommendation:** Use the **315M Large model**. It matches the NPU's capabilities perfectly.
+
+## Benchmark Results
 
 | Duration | NPU RTF | CPU RTF | NPU Speedup |
 |----------|---------|---------|-------------|
@@ -26,7 +39,14 @@ Real-time speech recognition accelerated by Intel NPU using Wav2Vec2 CTC models.
 
 *RTF = Real-Time Factor (lower is faster)*
 
-## 🔧 Requirements
+See full [Benchmark Results](benchmarks/benchmark_results_2026-01-14.md).
+
+## Why NPU?
+
+Read our deep dive on why we chose this architecture:
+[NPU vs Whisper Concept](kb/npu_vs_whisper_cpu_concept.md) - Understanding Encoder-Only vs Encoder-Decoder for NPU.
+
+## Requirements
 
 ### Hardware
 - **Intel Core Ultra** processor (Meteor Lake or newer) with integrated NPU
@@ -37,7 +57,7 @@ Real-time speech recognition accelerated by Intel NPU using Wav2Vec2 CTC models.
 - Python 3.10 or higher
 - **Intel NPU Driver** version **32.0.100.4404** or newer (critical!)
 
-## 📦 Installation
+## Installation
 
 ### Step 1: Check/Update Intel NPU Driver
 
@@ -51,12 +71,12 @@ Get-WmiObject Win32_PnPSignedDriver | Where-Object { $_.DeviceName -like '*Intel
 **Required:** Version `32.0.100.4404` or newer
 
 If your driver is older, download the latest from:  
-👉 [Intel NPU Driver Downloads](https://www.intel.com/content/www/us/en/download/794734/intel-npu-driver-windows.html)
+[Intel NPU Driver Downloads](https://www.intel.com/content/www/us/en/download/794734/intel-npu-driver-windows.html)
 
 ### Step 2: Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/stt-npu.git
+git clone https://github.com/en4ble1337/stt-on-npu.git
 cd stt-npu
 ```
 
@@ -85,7 +105,7 @@ optimum-cli export openvino --model facebook/wav2vec2-large-960h --task automati
 optimum-cli export openvino --model facebook/wav2vec2-base-960h --task automatic-speech-recognition --weight-format fp16 models/wav2vec2-base-960h
 ```
 
-## 🚀 Usage
+## Usage
 
 ### Real-time Transcription
 
@@ -105,7 +125,7 @@ Speak into your microphone - transcriptions appear after speech pauses.
 python scripts/benchmark.py --model models/wav2vec2-large-960h --iterations 5 --durations "5,10,20,30"
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 stt-npu/
@@ -123,7 +143,7 @@ stt-npu/
 └── docs/                       # Documentation
 ```
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
 ### "LLVM ERROR: Failed to infer result type"
 
@@ -145,20 +165,16 @@ stt-npu/
 **Cause:** Using base model or short audio segments  
 **Solution:** Use `wav2vec2-large-960h` for better accuracy. Longer utterances (5+ seconds) work better.
 
-## 🔬 Technical Details
+## Technical Details
 
 ### Why Wav2Vec2 instead of Whisper?
 
 | Model | Architecture | NPU Compatible |
 |-------|--------------|----------------|
-| **Wav2Vec2** | Encoder-only + CTC | ✅ Yes |
-| Whisper | Encoder-Decoder | ❌ No (decoder needs dynamic shapes) |
+| **Wav2Vec2** | Encoder-only + CTC | Yes |
+| Whisper | Encoder-Decoder | No (decoder needs dynamic shapes) |
 
-**In Simple Terms:** The NPU is like a factory assembly line—it runs incredibly fast but requires every "box" (input) to be exactly the same size.
-- **Wav2Vec2** works like a scanner: it processes a fixed 30-second chunk of audio in one go. The "box" size never changes, so the NPU stays happy.
-- **Whisper** works like a writer: it listens, writes a word, thinks, writes the next word, and constantly changes its memory usage. The NPU cannot handle this constant resizing.
-
-For a deeper dive, read: [The Chef vs. The Factory: A conceptual comparison](kb/npu_vs_whisper_cpu_concept.md)
+NPU requires **static input shapes**. Wav2Vec2's encoder-only architecture with CTC decoding works perfectly, while Whisper's autoregressive decoder fails.
 
 ### Static Shape Padding
 
@@ -167,17 +183,17 @@ For NPU inference, all audio is padded to 30 seconds (480,000 samples at 16kHz).
 - Higher throughput for longer audio
 - Trade-off: slightly slower for very short clips (<3s)
 
-## 📚 Documentation
+## Documentation
 
 - [Architecture](docs/ARCH.md)
 - [Benchmark Results](benchmarks/)
 - [Development Journals](kb/)
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [OpenVINO](https://github.com/openvinotoolkit/openvino) - Intel's AI toolkit
 - [Optimum Intel](https://github.com/huggingface/optimum-intel) - HuggingFace integration

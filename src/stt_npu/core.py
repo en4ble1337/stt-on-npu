@@ -50,8 +50,13 @@ class Transcriber:
         else:
             # For CPU/GPU: direct loading works fine
             self.model = OVModelForCTC.from_pretrained(model_path, device=self.device)
-        
-        self.processor = AutoProcessor.from_pretrained(model_path)
+        # Load processor
+        try:
+            self.processor = AutoProcessor.from_pretrained(model_path)
+        except Exception as e:
+            print(f"Warning: AutoProcessor failed ({e}), falling back to Wav2Vec2Processor")
+            from transformers import Wav2Vec2Processor
+            self.processor = Wav2Vec2Processor.from_pretrained(model_path)
 
     def transcribe(self, audio_chunk: np.ndarray) -> str:
         """
