@@ -154,7 +154,11 @@ stt-npu/
 | **Wav2Vec2** | Encoder-only + CTC | ✅ Yes |
 | Whisper | Encoder-Decoder | ❌ No (decoder needs dynamic shapes) |
 
-NPU requires **static input shapes**. Wav2Vec2's encoder-only architecture with CTC decoding works perfectly, while Whisper's autoregressive decoder fails.
+**In Simple Terms:** The NPU is like a factory assembly line—it runs incredibly fast but requires every "box" (input) to be exactly the same size.
+- **Wav2Vec2** works like a scanner: it processes a fixed 30-second chunk of audio in one go. The "box" size never changes, so the NPU stays happy.
+- **Whisper** works like a writer: it listens, writes a word, thinks, writes the next word, and constantly changes its memory usage. The NPU cannot handle this constant resizing.
+
+For a deeper dive, read: [The Chef vs. The Factory: A conceptual comparison](kb/npu_vs_whisper_cpu_concept.md)
 
 ### Static Shape Padding
 

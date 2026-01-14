@@ -45,6 +45,10 @@ def benchmark_model_load(model_path: str, device: str) -> float:
     from stt_npu.core import Transcriber
     
     start = time.perf_counter()
+    # Ensure absolute path for local models
+    if os.path.exists(model_path):
+        model_path = os.path.abspath(model_path)
+        
     transcriber = Transcriber(model_path=model_path, device=device)
     load_time = time.perf_counter() - start
     
