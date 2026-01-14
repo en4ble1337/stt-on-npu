@@ -1,0 +1,13 @@
+optimum-intel[openvino]
+transformers
+accelerate
+
+sounddevice
+numpy
+librosa
+silero-vad
+torch
+onnxruntime
+setuptools
+pytest
+python-dotenv
