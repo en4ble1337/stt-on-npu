@@ -1,6 +1,6 @@
 # NPU Speech-to-Text with Wav2Vec2
 
-![NPU Testing](assets/NPU-testing.png)
+![NPU Testing](assets/logo.png)
 
 Real-time speech recognition accelerated by Intel NPU using Wav2Vec2 CTC models.
 
